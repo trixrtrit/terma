@@ -18,9 +18,22 @@
       if (!res.ok) throw new Error("Could not load word list");
       const words = await res.json();
       dictionary = words.map((word) => word.toLowerCase());
-      targetWord =
-        dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
-      startInteraction();
+
+      // Try to restore state
+      const saved = JSON.parse(localStorage.getItem("terma-state") || "{}");
+      if (saved.targetWord && dictionary.includes(saved.targetWord)) {
+        targetWord = saved.targetWord;
+      } else {
+        targetWord =
+          dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
+      }
+
+      restoreGrid(saved.grid);
+      if (saved.status === "win" || saved.status === "lose") {
+        stopInteraction();
+      } else {
+        startInteraction();
+      }
     } catch (err) {
       showAlert("Failed to start game", 5000);
       console.error(err);
@@ -98,7 +111,7 @@
   function submitGuess() {
     const activeTiles = [...getActiveTiles()];
     if (activeTiles.length !== WORD_LENGTH) {
-      showAlert("Not enough letters");
+      showAlert("Faltam letras, Tente novamente!");
       shakeTiles(activeTiles);
       return;
     }
@@ -109,7 +122,7 @@
     );
 
     if (!dictionary.includes(guess)) {
-      showAlert("Not in word list");
+      showAlert(`"${guess}" não é uma palavra válida, Tente novamente!`);
       shakeTiles(activeTiles);
       return;
     }
@@ -122,12 +135,10 @@
     const states = Array(WORD_LENGTH).fill("wrong");
     const letterCount = {};
 
-    // Count letters in targetWord
     targetLetters.forEach((l) => {
       letterCount[l] = (letterCount[l] || 0) + 1;
     });
 
-    // First pass: correct positions
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (guessLetters[i] === targetLetters[i]) {
         states[i] = "correct";
@@ -135,7 +146,6 @@
       }
     }
 
-    // Second pass: wrong-location
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (states[i] === "correct") continue;
       const letter = guessLetters[i];
@@ -145,10 +155,11 @@
       }
     }
 
-    // Animate tiles with correct states
     activeTiles.forEach((tile, idx, arr) =>
       flipTile(tile, idx, arr, guess, states)
     );
+
+    setTimeout(() => saveState(), FLIP_ANIMATION_DURATION * WORD_LENGTH);
   }
 
   function flipTile(tile, index, array, guess, states) {
@@ -222,9 +233,10 @@
 
   function checkWinLose(guess, tiles) {
     if (guess === targetWord) {
-      showAlert("You Win!", 5000);
+      showAlert("Incrivel! É o maior champino da sua aldeia", 5000);
       danceTiles(tiles);
       stopInteraction();
+      saveState("win");
       return;
     }
 
@@ -232,6 +244,7 @@
     if (remainingTiles.length === 0) {
       showAlert(targetWord.toUpperCase(), null);
       stopInteraction();
+      saveState("lose");
     }
   }
 
@@ -247,6 +260,40 @@
           { once: true }
         );
       }, (index * DANCE_ANIMATION_DURATION) / 5);
+    });
+  }
+
+  function saveState(status = null) {
+    const grid = [];
+    guessGrid.querySelectorAll("[data-letter]").forEach((tile) => {
+      grid.push({
+        letter: tile.dataset.letter,
+        state: tile.dataset.state,
+        index: [...tile.parentNode.children].indexOf(tile),
+        row: [...guessGrid.children].indexOf(tile.parentNode),
+      });
+    });
+    localStorage.setItem(
+      "terma-state",
+      JSON.stringify({
+        targetWord,
+        grid,
+        status,
+      })
+    );
+  }
+
+  function restoreGrid(grid = []) {
+    if (!Array.isArray(grid)) return;
+    grid.forEach(({ letter, state }, i) => {
+      const tile = guessGrid.querySelectorAll(
+        "[data-letter], :not([data-letter])"
+      )[i];
+      if (tile) {
+        tile.dataset.letter = letter;
+        tile.textContent = letter.toUpperCase();
+        tile.dataset.state = state;
+      }
     });
   }
 })();
