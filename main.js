@@ -274,7 +274,7 @@
     });
   }
 
-  function saveState(status = null) {
+  function saveState(status) {
     const grid = [];
     guessGrid.querySelectorAll("[data-letter]").forEach((tile) => {
       grid.push({
