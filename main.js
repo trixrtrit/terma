@@ -176,10 +176,12 @@
       flipTile(tile, idx, arr, guess, states)
     );
 
+    /*
     setTimeout(
       () => saveState("in-progress"),
       FLIP_ANIMATION_DURATION * WORD_LENGTH
     );
+    */
   }
 
   function flipTile(tile, index, array, guess, states) {
@@ -265,7 +267,9 @@
       showAlert(targetWord.toUpperCase(), null);
       stopInteraction();
       saveState("lose");
+      return;
     }
+    saveState();
   }
 
   function danceTiles(tiles) {
