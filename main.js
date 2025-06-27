@@ -59,7 +59,6 @@
 
   function startInteraction() {
     document.addEventListener("click", handleMouseClick);
-    document.addEventListener("keydown", handleKeyPress);
 
     const hiddenInput = document.getElementById("hidden-input");
     if (hiddenInput) {
@@ -84,8 +83,6 @@
 
   function stopInteraction() {
     document.removeEventListener("click", handleMouseClick);
-    document.removeEventListener("keydown", handleKeyPress);
-
     const hiddenInput = document.getElementById("hidden-input");
     if (hiddenInput) {
       hiddenInput.blur();
