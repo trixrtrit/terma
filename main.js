@@ -65,15 +65,22 @@
       hiddenInput.value = "";
       hiddenInput.focus();
       hiddenInput.onblur = () => setTimeout(() => hiddenInput.focus(), 100);
+
+      hiddenInput.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          submitGuess();
+          e.preventDefault();
+        } else if (e.key === "Backspace" || e.key === "Delete") {
+          deleteKey();
+          e.preventDefault();
+        }
+      };
+
       hiddenInput.oninput = (e) => {
         const val = hiddenInput.value;
         if (!val) return;
         const lastChar = val[val.length - 1];
-        if (lastChar === "\n") {
-          submitGuess();
-        } else if (lastChar === "\b") {
-          deleteKey();
-        } else if (/^[a-zç]$/i.test(lastChar)) {
+        if (/^[a-zç]$/i.test(lastChar)) {
           pressKey(lastChar);
         }
         hiddenInput.value = "";
