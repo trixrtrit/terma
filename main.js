@@ -24,35 +24,44 @@
       dictionary = words.map((word) => word.toLowerCase());
       window.normalizedDictionary = dictionary.map(normalize);
 
+      // Get today's date string (YYYY-MM-DD)
+      const today = new Date().toISOString().slice(0, 10);
+
       // Try to restore state
       const saved = JSON.parse(localStorage.getItem("terma-state") || "{}");
-      if (saved.targetWord && dictionary.includes(saved.targetWord)) {
-        targetWord = saved.targetWord;
-      } else {
+      if (saved.date !== today) {
+        // New day: clear state
+        localStorage.removeItem("terma-state");
         targetWord =
           dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
-      }
-
-      restoreGrid(saved.grid);
-
-      if (saved.status === "win" || saved.status === "lose") {
-        stopInteraction();
-        showAlert(
-          saved.status === "win"
-            ? "Já venceu! Aguarde a próxima palavra."
-            : "Já perdeu! Aguarde a próxima palavra.",
-          5000
-        );
-      } else {
+        restoreGrid(); // clear grid
         startInteraction();
+      } else {
+        if (saved.targetWord && dictionary.includes(saved.targetWord)) {
+          targetWord = saved.targetWord;
+        } else {
+          targetWord =
+            dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
+        }
+        restoreGrid(saved.grid);
+
+        if (saved.status === "win" || saved.status === "lose") {
+          stopInteraction();
+          showAlert(
+            saved.status === "win"
+              ? "Já venceu! Aguarde a próxima palavra."
+              : "Já perdeu! Aguarde a próxima palavra.",
+            5000
+          );
+        } else {
+          startInteraction();
+        }
       }
     } catch (err) {
       showAlert("Failed to start game", 5000);
       console.error(err);
     }
   });
-
-  //startInteraction();
 
   function startInteraction() {
     document.addEventListener("click", handleMouseClick);
@@ -284,12 +293,14 @@
         row: [...guessGrid.children].indexOf(tile.parentNode),
       });
     });
+    const today = new Date().toISOString().slice(0, 10);
     localStorage.setItem(
       "terma-state",
       JSON.stringify({
         targetWord,
         grid,
         status,
+        date: today,
       })
     );
   }
