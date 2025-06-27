@@ -34,8 +34,15 @@
       }
 
       restoreGrid(saved.grid);
+
       if (saved.status === "win" || saved.status === "lose") {
         stopInteraction();
+        showAlert(
+          saved.status === "win"
+            ? "Já venceu! Aguarde a próxima palavra."
+            : "Já perdeu! Aguarde a próxima palavra.",
+          5000
+        );
       } else {
         startInteraction();
       }
@@ -45,7 +52,7 @@
     }
   });
 
-  startInteraction();
+  //startInteraction();
 
   function startInteraction() {
     document.addEventListener("click", handleMouseClick);
@@ -85,7 +92,7 @@
       return;
     }
 
-    if (e.key.match(/^[a-z]$/)) {
+    if (e.key.match(/^[a-zç]$/)) {
       pressKey(e.key);
       return;
     }
