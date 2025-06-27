@@ -12,12 +12,17 @@
   let targetWord = "";
   let dictionary = [];
 
+  function normalize(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       const res = await fetch("words/random.json");
       if (!res.ok) throw new Error("Could not load word list");
       const words = await res.json();
       dictionary = words.map((word) => word.toLowerCase());
+      window.normalizedDictionary = dictionary.map(normalize);
 
       // Try to restore state
       const saved = JSON.parse(localStorage.getItem("terma-state") || "{}");
@@ -116,12 +121,11 @@
       return;
     }
 
-    const guess = activeTiles.reduce(
-      (word, tile) => word + tile.dataset.letter,
-      ""
-    );
+    const guess = activeTiles
+      .reduce((word, tile) => word + tile.dataset.letter, "")
+      .toLowerCase();
 
-    if (!dictionary.includes(guess)) {
+    if (!window.normalizedDictionary.includes(normalize(guess))) {
       showAlert(`"${guess}" não é uma palavra válida, Tente novamente!`);
       shakeTiles(activeTiles);
       return;
@@ -129,26 +133,26 @@
 
     stopInteraction();
 
-    // Prepare arrays for marking
-    const guessLetters = guess.split("");
-    const targetLetters = targetWord.split("");
     const states = Array(WORD_LENGTH).fill("wrong");
     const letterCount = {};
 
-    targetLetters.forEach((l) => {
+    const normalizedTarget = normalize(targetWord);
+    const normalizedGuess = normalize(guess);
+
+    for (const l of normalizedTarget) {
       letterCount[l] = (letterCount[l] || 0) + 1;
-    });
+    }
 
     for (let i = 0; i < WORD_LENGTH; i++) {
-      if (guessLetters[i] === targetLetters[i]) {
+      if (normalizedGuess[i] === normalizedTarget[i]) {
         states[i] = "correct";
-        letterCount[guessLetters[i]]--;
+        letterCount[normalizedGuess[i]]--;
       }
     }
 
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (states[i] === "correct") continue;
-      const letter = guessLetters[i];
+      const letter = normalizedGuess[i];
       if (letterCount[letter] > 0) {
         states[i] = "wrong-location";
         letterCount[letter]--;
