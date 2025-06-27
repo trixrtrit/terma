@@ -24,17 +24,14 @@
       dictionary = words.map((word) => word.toLowerCase());
       window.normalizedDictionary = dictionary.map(normalize);
 
-      // Get today's date string (YYYY-MM-DD)
       const today = new Date().toISOString().slice(0, 10);
 
-      // Try to restore state
       const saved = JSON.parse(localStorage.getItem("terma-state") || "{}");
       if (saved.date !== today) {
-        // New day: clear state
         localStorage.removeItem("terma-state");
         targetWord =
           dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
-        restoreGrid(); // clear grid
+        restoreGrid();
         startInteraction();
       } else {
         if (saved.targetWord && dictionary.includes(saved.targetWord)) {
@@ -179,7 +176,10 @@
       flipTile(tile, idx, arr, guess, states)
     );
 
-    setTimeout(() => saveState(), FLIP_ANIMATION_DURATION * WORD_LENGTH);
+    setTimeout(
+      () => saveState("in-progress"),
+      FLIP_ANIMATION_DURATION * WORD_LENGTH
+    );
   }
 
   function flipTile(tile, index, array, guess, states) {
@@ -252,7 +252,7 @@
   }
 
   function checkWinLose(guess, tiles) {
-    if (guess === targetWord) {
+    if (normalize(guess) === normalize(targetWord)) {
       showAlert("Incrivel! É o maior champino da sua aldeia", 5000);
       danceTiles(tiles);
       stopInteraction();
