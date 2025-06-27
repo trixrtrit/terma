@@ -34,12 +34,9 @@
         restoreGrid();
         startInteraction();
       } else {
-        if (saved.targetWord && dictionary.includes(saved.targetWord)) {
-          targetWord = saved.targetWord;
-        } else {
-          targetWord =
-            dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
-        }
+        targetWord =
+          dictionary[Math.floor(dayOffsetFromRefDate % dictionary.length)];
+
         restoreGrid(saved.grid);
 
         if (saved.status === "win" || saved.status === "lose") {
@@ -175,13 +172,6 @@
     activeTiles.forEach((tile, idx, arr) =>
       flipTile(tile, idx, arr, guess, states)
     );
-
-    /*
-    setTimeout(
-      () => saveState("in-progress"),
-      FLIP_ANIMATION_DURATION * WORD_LENGTH
-    );
-    */
   }
 
   function flipTile(tile, index, array, guess, states) {
@@ -301,7 +291,6 @@
     localStorage.setItem(
       "terma-state",
       JSON.stringify({
-        targetWord,
         grid,
         status,
         date: today,
