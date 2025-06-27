@@ -60,11 +60,36 @@
   function startInteraction() {
     document.addEventListener("click", handleMouseClick);
     document.addEventListener("keydown", handleKeyPress);
+
+    const hiddenInput = document.getElementById("hidden-input");
+    if (hiddenInput) {
+      hiddenInput.value = "";
+      hiddenInput.focus();
+      hiddenInput.onblur = () => setTimeout(() => hiddenInput.focus(), 100);
+      hiddenInput.oninput = (e) => {
+        const val = hiddenInput.value;
+        if (!val) return;
+        const lastChar = val[val.length - 1];
+        if (lastChar === "\n") {
+          submitGuess();
+        } else if (lastChar === "\b") {
+          deleteKey();
+        } else if (/^[a-zç]$/i.test(lastChar)) {
+          pressKey(lastChar);
+        }
+        hiddenInput.value = "";
+      };
+    }
   }
 
   function stopInteraction() {
     document.removeEventListener("click", handleMouseClick);
     document.removeEventListener("keydown", handleKeyPress);
+
+    const hiddenInput = document.getElementById("hidden-input");
+    if (hiddenInput) {
+      hiddenInput.blur();
+    }
   }
 
   function handleMouseClick(e) {
